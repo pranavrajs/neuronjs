@@ -7,5 +7,8 @@
   },
   "devDependencies": {
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "openai": "^4.76.0"
   }
 }
