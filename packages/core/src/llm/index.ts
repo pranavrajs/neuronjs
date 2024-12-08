@@ -75,7 +75,7 @@ export class LLM {
 
   private prepareToolCallResult(message: OpenAI.Chat.ChatCompletionMessage): LLMResult {
     return {
-      toolsCall: message.tool_calls,
+      toolCalls: message.tool_calls,
       content: message.content
     };
   }

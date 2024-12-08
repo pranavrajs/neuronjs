@@ -22,7 +22,7 @@ The LLM service provides a unified interface for interacting with various Large 
 **Returns:**
 - Promise<LLMResult> containing either:
   - `{ content: string }` for standard responses
-  - `{ content: string | null, toolsCall: array }` for tool-based responses
+  - `{ content: string | null, toolCalls: array }` for tool-based responses
 
 ## Response Formats
 ### Standard Response
@@ -36,7 +36,7 @@ The LLM service provides a unified interface for interacting with various Large 
 ```typescript
 {
   content: string | null,
-  toolsCall: Array<{
+  toolCalls: Array<{
     id: string,
     type: string,
     function: {

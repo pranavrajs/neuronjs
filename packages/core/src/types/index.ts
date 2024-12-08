@@ -10,7 +10,7 @@ export type Provider = 'openai' | 'anthropic' | 'google';
 
 export interface LLMResult {
   content?: string | null;
-  toolsCall?: OpenAI.Chat.ChatCompletionMessage['tool_calls'];
+  toolCalls?: OpenAI.Chat.ChatCompletionMessage['tool_calls'];
 }
 
 export interface LLMServiceConfig {
