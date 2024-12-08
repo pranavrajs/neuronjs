@@ -6,7 +6,7 @@ import { AgentConfig, AgentResponse, LLMResult, Message, Provider, ToolConfig } 
 export class Agent {
   private name: string;
   private prompt: string;
-  private messages: Message[];
+  public messages: Message[];
   private maxIterations: number;
   private tools: Tool[];
   private llm: any;
