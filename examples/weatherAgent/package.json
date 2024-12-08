@@ -1,0 +1,16 @@
+{
+  "name": "@neuron.js/examples-weatheragent",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@neuron.js/core": "workspace:*",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2"
+  }
+}

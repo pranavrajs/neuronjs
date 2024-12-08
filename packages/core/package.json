@@ -1,11 +1,17 @@
 {
   "name": "@neuron.js/core",
   "version": "0.0.0",
-  "main": "index.js",
+  "type": "module",
+  "private": "true",
+  "source": "src/index.ts",
+  "main": "dist/main.mjs",
+  "types": "dist/types.d.ts",
   "scripts": {
+    "build": "parcel build --no-cache",
     "test": "vitest --no-watch --no-cache"
   },
   "devDependencies": {
+    "parcel": "^2.13.2",
     "vitest": "^2.1.8"
   },
   "dependencies": {

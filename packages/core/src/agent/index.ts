@@ -4,10 +4,10 @@ import { Tool } from "../tool";
 import { AgentConfig, AgentResponse, LLMResult, Message, Provider, ToolConfig } from "../types";
 
 export class Agent {
-  public name: string;
-  public prompt: string;
-  public messages: Message[];
-  public maxIterations: number;
+  private name: string;
+  private prompt: string;
+  private messages: Message[];
+  private maxIterations: number;
   private tools: Tool[];
   private llm: any;
   private logger: any;
@@ -23,7 +23,7 @@ export class Agent {
     this.maxIterations = config.maxIterations || 10;
     this.secrets = config.secrets;
     this.logger = config.logger || console;
-    this.logger.info(this.prompt);
+    this.logger.debug(this.prompt);
 
     this.llm = new LLM({ provider: this.provider, apiKey: config.secrets.OPENAI_API_KEY, logger: this.logger });
   }
@@ -40,11 +40,16 @@ export class Agent {
         this.pushToMessages({ role: "system", content: "Provide a final answer" });
       }
 
-      result = await this.llm.call(this.messages, this.functions());
+      try {
+        result = await this.llm.call(this.messages, this.functions());
 
-      await this.handleLlmResult(result);
+        await this.handleLlmResult(result);
 
-      if (result.content?.stop) break;
+        if (result.content?.stop) break;
+      } catch (error) {
+        this.pushToMessages({ role: "assistant", content: `There was an error ${error.message}` });
+      }
+
       iterationCount++;
     }
 
@@ -85,19 +90,22 @@ export class Agent {
     return `
       Persona: ${config.persona}
       Objective: ${config.goal}
+
       Guidelines:
-      - Work diligently until the stated objective is achieved.
-      - Utilize only the provided tools for solving the task. Do not make up names of the functions
-      - Set 'stop: true' when the objective is complete.
-      - If you have enough information to provide the details to the user, prepare a final result collecting all the information you have.
-      Output Structure:
-      If you find a function, that can be used, directly call the function.
-      When providing the final answer:
-      {
-        'thoughtProcess': 'Describe the reasoning and steps that will lead to the final result.',
-        'output': 'The complete answer in text form.',
-        'stop': true
-      }
+	    1. Make sure that you break the task into logical steps and execute methodically until the objective is achieved. Do not attempt to solve before breaking it into steps.
+      2. Provide the breakdown steps as thought process in the first step.
+	    3. Use only the provided tools, avoiding unnecessary or improvised function calls. If a tool can assist in solving the task, do not invoke it immediately rather provide reasoning first and then invoke the tool.
+	    4. Include thoughtProcess during intermediate steps, but omit it from the final answer.
+	    5. Mark the completion of the task by setting 'stop': true.
+	    6. Ensure outputs are structured in the specified JSON format:
+      - thoughtProcess: A concise explanation of reasoning and next steps (only for intermediate responses).
+	    - output: The complete, user-friendly answer (final response only).
+      - stop: Boolean indicator of task status (false for intermediate, true for final).
+
+
+      Make sure that the format is followed properly:
+      While processing: {thoughtProcess: '<reasoning>', stop: false}
+	    Upon completion: {output: '<final result>', stop: true}
     `;
   }
 
@@ -108,13 +116,17 @@ export class Agent {
   }
 
   private functions(): Array<{
-    name: string;
-    description: string;
-    parameters: {
-      type: string;
-      properties: Record<string, { type: string; description: string }>;
-      required: string[];
-    };
+    type: string,
+    function:{
+      name: string;
+      description: string;
+      parameters: {
+        type: string;
+        properties: Record<string, { type: string; description: string }>;
+        required: string[];
+      };
+    }
+
   }> {
     return this.tools.map(tool => {
       const properties: Record<string, { type: string; description: string }> = {};
@@ -131,19 +143,22 @@ export class Agent {
         .map(([name]) => name);
 
       return {
-        name: tool.name,
-        description: tool.description,
-        parameters: {
-          type: "object",
-          properties,
-          required
+        type: 'function',
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: {
+            type: "object",
+            properties,
+            required
+          }
         }
       };
     });
   }
 
   private pushToMessages(message: Message): void {
-    this.logger.info(`Message: ${JSON.stringify(message)}`);
+    this.logger.debug(`Message: ${JSON.stringify(message)}`);
     this.messages.push(message);
   }
 
@@ -156,9 +171,10 @@ export class Agent {
       return { output: "Invalid tool_name, please try again", stop: false };
     }
 
-    this.logger.info(
+    this.logger.debug(
       `tool_call: ${toolCall.function.name}, ${toolCall.function.arguments}`,
     );
+    this.pushToMessages({ role: "assistant", content: `Used the tool ${toolCall.function.name}` });
 
     const functionArgs = JSON.parse(toolCall.function.arguments);
 

@@ -48,12 +48,10 @@ export interface AgentConfig {
   messages?: Message[];
   maxIterations?: number;
   persona?: string;
-  provider: Provider;
+  provider?: Provider;
   goal?: string;
-  secrets: {
-    OPENAI_API_KEY: string;
-  };
-  logger: Console
+  secrets: Record<string, string>;
+  logger?: Console
 }
 
 export interface Message {

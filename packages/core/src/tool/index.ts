@@ -11,7 +11,7 @@ export class Tool {
       properties: Record<string, FunctionInput>,
       secrets?: string[],
     },
-    private implementation?: (input: Record<string, unknown>, secrets: Record<string, unknown>) => void
+    private implementation?: (input: Record<string, any>, secrets: Record<string, any>) => void
   ) {
     this.validateConfig();
   }
@@ -20,7 +20,7 @@ export class Tool {
     this.implementation = implementation;
   }
 
-  execute(input: Record<string, unknown>, providedSecrets: Record<string, string> = {}): any {
+  execute(input: Record<string, any>, providedSecrets: Record<string, string> = {}): any {
     this.validateSecrets(providedSecrets);
     this.validateInput(input);
 
