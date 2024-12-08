@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { ChatCompletionMessageToolCall } from "openai/resources/index.mjs";
 
 export type FunctionInput = {
   type: string;
@@ -7,10 +7,15 @@ export type FunctionInput = {
 };
 
 export type Provider = 'openai' | 'anthropic' | 'google';
+export interface AgentResponse {
+  thoughtProcess?: string | null,
+  output?: string | null;
+  stop?: boolean;
+}
 
 export interface LLMResult {
-  content?: string | null;
-  toolCalls?: OpenAI.Chat.ChatCompletionMessage['tool_calls'];
+  content?: AgentResponse | null;
+  toolCalls?: ChatCompletionMessageToolCall[];
 }
 
 export interface LLMServiceConfig {
@@ -18,4 +23,40 @@ export interface LLMServiceConfig {
   apiKey: string;
   defaultModel?: string;
   logger?: Console;
+}
+
+
+export interface ToolProperty {
+  type: string;
+  description: string;
+  required?: boolean;
+}
+
+export  interface ToolConfig {
+  name: string;
+  description: string;
+  config: {
+    properties: Record<string, ToolProperty>;
+    secrets?: string[];
+  },
+  implementation?: any;
+}
+
+export interface AgentConfig {
+  prompt?: string;
+  tools?: ToolConfig[];
+  messages?: Message[];
+  maxIterations?: number;
+  persona?: string;
+  provider: Provider;
+  goal?: string;
+  secrets: {
+    OPENAI_API_KEY: string;
+  };
+  logger: Console
+}
+
+export interface Message {
+  role: string;
+  content: string;
 }

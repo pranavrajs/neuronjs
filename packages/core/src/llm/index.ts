@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { LLMResult, LLMServiceConfig, Provider } from '../types';
+import { AgentResponse, LLMResult, LLMServiceConfig, Provider } from '../types';
 import { ContentParsingError, InvalidProviderError, LLMModelError, ProviderError } from '../errors';
 import { ensureError } from '../utils';
 
@@ -76,15 +76,15 @@ export class LLM {
   private prepareToolCallResult(message: OpenAI.Chat.ChatCompletionMessage): LLMResult {
     return {
       toolCalls: message.tool_calls,
-      content: message.content
+      content: { output: message.content }
     };
   }
 
   private prepareContentResult(content: string | null | undefined): LLMResult {
     try {
       const trimmedContent = content?.trim() ?? "";
-      const parsed = this.parseJsonContent(trimmedContent);
-      return { content: parsed.content };
+      const parsedContent: AgentResponse = this.parseJsonContent(trimmedContent);
+      return { content: parsedContent };
     } catch (error) {
       throw new ContentParsingError(
         `Failed to prepare content result: ${ensureError(error).message}`
@@ -92,7 +92,7 @@ export class LLM {
     }
   }
 
-  private parseJsonContent(content: string): { content: string } {
+  private parseJsonContent(content: string): AgentResponse  {
     try {
       return JSON.parse(content);
     } catch (error) {
@@ -158,6 +158,6 @@ export class LLM {
       stack: normalizedError.stack,
     });
 
-    return { content: "An error occurred while processing your request. ${errorMessage}" };
+    return { content: { output: "An error occurred while processing your request. ${errorMessage}" } };
   }
 }

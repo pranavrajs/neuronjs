@@ -8,7 +8,7 @@ export class Tool {
     readonly name: string,
     readonly description: string,
     readonly config: {
-      properties?: Record<string, FunctionInput>,
+      properties: Record<string, FunctionInput>,
       secrets?: string[],
     },
     private implementation?: (input: Record<string, unknown>, secrets: Record<string, unknown>) => void
@@ -20,7 +20,7 @@ export class Tool {
     this.implementation = implementation;
   }
 
-  async execute(input: Record<string, unknown>, providedSecrets: Record<string, unknown> = {}): Promise<unknown> {
+  execute(input: Record<string, unknown>, providedSecrets: Record<string, string> = {}): any {
     this.validateSecrets(providedSecrets);
     this.validateInput(input);
 
@@ -44,7 +44,7 @@ export class Tool {
     }
   }
 
-  private validateSecrets(providedSecrets: Record<string, unknown>): void {
+  private validateSecrets(providedSecrets: Record<string, string>): void {
     if (!this.config.secrets) {
       return;
     }
@@ -55,11 +55,7 @@ export class Tool {
     }
   }
 
-  private validateInput(input: Record<string, unknown>): void {
-    if (!this.config.properties) {
-      return;
-    }
-
+  private validateInput(input: Record<string, any>): void {
     Object.entries(this.config.properties).forEach(([property, details]) => {
       if (details.required && !(property in input)) {
         throw new InvalidImplementationError(`Missing required property: ${property}`);

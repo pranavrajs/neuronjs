@@ -5,7 +5,7 @@ import { FunctionInput } from '../types';
 
 describe('Tool', () => {
   let validConfig: {
-    properties?: Record<string, FunctionInput>;
+    properties: Record<string, FunctionInput>;
     secrets?: string[];
   };
 
@@ -58,33 +58,33 @@ describe('Tool', () => {
       );
     });
 
-    test('throws ExecutionError when no implementation is registered', async () => {
+    test('throws ExecutionError when no implementation is registered', () => {
       const tool = new Tool('testTool', 'Test description', validConfig);
 
-      await expect(tool.execute(
+      expect(() => tool.execute(
         { requiredProp: 'value' },
         { apiKey: 'test-key' }
-      )).rejects.toThrow(ExecutionError);
+      )).toThrow(ExecutionError);
     });
 
     test('throws InvalidSecretsError when required secrets are missing', async () => {
       const implementation = vi.fn();
       const tool = new Tool('testTool', 'Test description', validConfig, implementation);
 
-      await expect(tool.execute(
+      expect(() => tool.execute(
         { requiredProp: 'value' },
         {}
-      )).rejects.toThrow(InvalidSecretsError);
+      )).toThrow(InvalidSecretsError);
     });
 
     test('throws InvalidImplementationError when required properties are missing', async () => {
       const implementation = vi.fn();
       const tool = new Tool('testTool', 'Test description', validConfig, implementation);
 
-      await expect(tool.execute(
+      expect(() => tool.execute(
         { optionalProp: 'value' },
         { apiKey: 'test-key' }
-      )).rejects.toThrow(InvalidImplementationError);
+      )).toThrow(InvalidImplementationError);
     });
 
     test('handles implementation throwing an error', async () => {
@@ -93,25 +93,12 @@ describe('Tool', () => {
       });
       const tool = new Tool('testTool', 'Test description', validConfig, implementation);
 
-      await expect(tool.execute(
+      expect(() => tool.execute(
         { requiredProp: 'value' },
         { apiKey: 'test-key' }
-      )).rejects.toThrow(ExecutionError);
+      )).toThrow(ExecutionError);
     });
 
-    test('works with no properties configured', async () => {
-      const implementation = vi.fn().mockReturnValue('success');
-      const tool = new Tool('testTool', 'Test description', {
-        secrets: ['apiKey']
-      }, implementation);
-
-      const result = await tool.execute(
-        {},
-        { apiKey: 'test-key' }
-      );
-
-      expect(result).toBe('success');
-    });
 
     test('works with no secrets configured', async () => {
       const implementation = vi.fn().mockReturnValue('success');
@@ -121,7 +108,7 @@ describe('Tool', () => {
         }
       }, implementation);
 
-      const result = await tool.execute(
+      const result = tool.execute(
         { requiredProp: 'value' }
       );
 
